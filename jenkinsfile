@@ -1,0 +1,48 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKER_IMAGE = 'my-node-app'
+        DOCKER_TAG = 'latest'
+        DOCKER_PORT = 3005
+    }
+
+    stages {
+        stage('Clone Repository') {
+            steps {
+                // Clone your Git repository
+                git 'git@github.com:kavilash007/devops-pipeline-demo.git' 
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    // Build Docker image
+                    sh 'docker build -t $DOCKER_IMAGE:$DOCKER_TAG .'
+                }
+            }
+        }
+
+        stage('Run Docker Container') {
+            steps {
+                script {
+                    // Stop any existing container with the same name
+                    sh 'docker rm -f $DOCKER_IMAGE || true'
+                    
+                    // Run Docker container
+                    sh 'docker run -d -p $DOCKER_PORT:$DOCKER_PORT --name $DOCKER_IMAGE $DOCKER_IMAGE:$DOCKER_TAG'
+                }
+            }
+        }
+
+        stage('Cleanup') {
+            steps {
+                script {
+                    // Optionally, remove images and containers after deployment
+                    sh 'docker system prune -f'
+                }
+            }
+        }
+    }
+}
